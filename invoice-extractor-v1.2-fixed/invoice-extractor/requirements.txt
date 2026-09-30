@@ -1,0 +1,36 @@
+# --- PaddlePaddle (CPU-only) MUST be installed FIRST, from the official CPU index ---
+# (it is intentionally NOT in this file: a plain `pip install -r requirements.txt`
+#  must never resolve the GPU wheel from PyPI):
+#
+#   pip install "paddlepaddle==3.2.1" -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+#   pip install -r requirements.txt
+#
+# PaddleOCR 3.x ships PaddleX-style pipelines; the doc-parser extra is NOT needed
+# (we do text detection + recognition only) and must NOT be installed here.
+
+# OCR
+paddleocr>=3.0.0            # PP-OCRv5 text pipeline; pin minor (e.g. ==3.2.*) after first verified install
+pytesseract>=0.3.10         # optional fallback engine (needs system tesseract-ocr binary)
+
+# Image / PDF
+opencv-python-headless>=4.9.0
+Pillow>=10.0.0
+pypdfium2>=4.28.0           # BSD-licensed PDF rasterizer (PyMuPDF is AGPL — avoided)
+numpy>=1.26.0
+
+# API
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+pydantic-settings>=2.2.0
+
+# DB
+SQLAlchemy>=2.0.0
+psycopg2-binary>=2.9.9      # Postgres driver (SQLite used when DATABASE_URL is sqlite)
+# NOTE: no Alembic — schema migrations are out of scope for v1.0 (SQLite creates
+# tables on boot via init_db; for Postgres apply the same schema manually or add
+# Alembic later).
+
+# Dev / test / eval
+pytest>=8.0.0
+jiwer>=3.0.0                # CER/WER for eval harness

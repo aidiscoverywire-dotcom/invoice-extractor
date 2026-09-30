@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: extractor
+      POSTGRES_PASSWORD: extractor
+      POSTGRES_DB: extractor
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U extractor"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      # x86_64 only — paddle CPU wheels are AVX builds.
+      platforms: ["linux/amd64"]
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://extractor:extractor@db:5432/extractor
+      OCR_LANG: en
+      AUTO_THRESHOLD: "0.92"
+      REVIEW_THRESHOLD: "0.75"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./data:/srv/data
+      # NOTE: model weights live at PADDLE_PDX_CACHE_HOME inside the image
+      # (baked by scripts/download_models.py). Do NOT mount ./models here —
+      # MODEL_DIR is legacy; PADDLE_PDX_CACHE_HOME (+ PADDLEX_HOME fallback) is
+      # what PaddleOCR 3.x actually reads.
+    # PaddlePaddle needs generous shared memory.
+    shm_size: 8g
+
+volumes:
+  pgdata:
